@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Tuition Fee Receipt Generator</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- jsPDF CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #f0f4ff;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        
+        .container-fluid {
+            max-width: 1200px;
+        }
+        
+        .step-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+        
+        .receipt-container {
+            max-width: 850px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 35px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        
+        .logo-block {
+            flex-basis: 30%;
+            text-align: left;
+        }
+        
+        .info-block {
+            flex-basis: 70%;
+            text-align: right;
+        }
+        
+        .logo-container {
+            width: 120px;
+            height: 120px;
+            display: inline-block;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: #f8f9fa;
+        }
+        
+        .logo-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        
+        .institute-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .institute-details {
+            font-size: 0.85rem;
+            color: #495057;
+            line-height: 1.4;
+        }
+        
+        .receipt-title {
+            background-color: var(--secondary-color);
+            color: #000;
+            padding: 15px;
+            margin-top: 25px;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 4px solid var(--primary-color);
+            letter-spacing: 1px;
+        }
+        
+        .details-section h5 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        
+        .detail-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        
+        .detail-label {
+            font-weight: 500;
+            width: 130px;
+            flex-shrink: 0;
+            color: #6c757d;
+        }
+        
+        .detail-value {
+            font-weight: 400;
+            color: #212529;
+            flex-grow: 1;
+        }
+        
+        .fee-table {
+            border: 1px solid #ccc;
+        }
+        
+        .fee-table th, .fee-table td {
+            vertical-align: middle;
+            border-color: #dee2e6 !important;
+            padding: 12px;
+            font-size: 0.95rem;
+        }
+        
+        .fee-table thead th {
+            background-color: #f7f7f7;
+            font-weight: 600;
+            color: #343a40;
+        }
+        
+        .fee-table th:nth-child(3), .fee-table td:nth-child(3) {
+            text-align: right;
+            font-weight: 600;
+            width: 150px;
+        }
+        
+        .summary-row {
+            padding-top: 10px;
+        }
+        
+        .summary-label {
+            font-weight: 600;
+            text-align: right;
+            padding-right: 15px;
+        }
+        
+        .summary-value {
+            font-weight: 700;
+            text-align: right;
+            font-size: 1.1rem;
+        }
+        
+        .grand-total {
+            background-color: #e9f0ff;
+            border-top: 3px double var(--primary-color);
+            border-bottom: 3px double var(--primary-color);
+            margin-top: 15px;
+            padding: 15px 0;
+        }
+        
+        .grand-total .summary-label, .grand-total .summary-value {
+            font-size: 1.4rem;
+            color: #000;
+        }
+        
+        .action-buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .currency-symbol {
+            font-weight: 600;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            font-weight: bold;
+        }
+        
+        .step.active .step-number {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .step-label {
+            font-weight: 500;
+        }
+        
+        .step-connector {
+            width: 50px;
+            height: 2px;
+            background-color: #e9ecef;
+            margin: 0 5px;
+        }
+        
+        .step-content {
+            display: none;
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        .download-section {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .search-container {
+            position: relative;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .search-result-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .search-result-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .auto-fill-btn {
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .receipt-container {
+                padding: 15px;
+            }
+            
+            .institute-name {
+                font-size: 1.3rem;
+            }
+            
+            .detail-label {
+                width: 110px;
+            }
+            
+            .top-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .info-block {
+                text-align: center;
+                margin-top: 15px;
+            }
+            
+            .step-indicator {
+                flex-wrap: wrap;
+            }
+            
+            .step {
+                margin-bottom: 10px;
+            }
+        }
+        
+        @media print {
+            body {
+                background-color: #fff;
+                padding: 0;
+            }
+            
+            .step-container, .action-buttons, .step-indicator, .download-section {
+                display: none !important;
+            }
+            
+            .receipt-container {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 0;
+                border: none;
+                max-width: 100%;
+            }
+            
+           .receipt-title, .grand-total {
+    -webkit-print-color-adjust: exact; /* For WebKit browsers */
+    print-color-adjust: exact;         /* Standard property */
+}
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">University</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Student</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Fees</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">Generate</div>
+            </div>
+        </div>
+
+        <!-- Step 1: University Configuration -->
+        <div class="step-container step-content active" id="step1">
+            <h2 class="mb-4">University Information</h2>
+            
+            <div class="mb-4">
+                <h5>Search for University</h5>
+                <div class="search-container">
+                    <input type="text" class="form-control" id="universitySearch" placeholder="Search for a university...">
+                    <div class="search-results" id="universitySearchResults"></div>
+                </div>
+                <button class="btn btn-outline-primary auto-fill-btn" id="autoFillUniversity">
+                    <i class="bi bi-search"></i> Search & Auto-Fill
+                </button>
+            </div>
+            
+            <form id="universityConfig">
+                <div class="mb-3">
+                    <label for="universityName" class="form-label">University Name</label>
+                    <input type="text" class="form-control" id="universityName" placeholder="Enter university name">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="universityAddress" class="form-label">University Address</label>
+                    <textarea class="form-control" id="universityAddress" rows="2" placeholder="Enter university address"></textarea>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="universityPhone" class="form-label">Phone</label>
+                        <input type="text" class="form-control" id="universityPhone" placeholder="Enter phone number">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="universityEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="universityEmail" placeholder="Enter email address">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="universityWebsite" class="form-label">Website</label>
+                    <input type="text" class="form-control" id="universityWebsite" placeholder="Enter website URL">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="universityLogo" class="form-label">Logo URL</label>
+                    <input type="text" class="form-control" id="universityLogo" placeholder="Enter logo URL (optional)">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="currencySearch" class="form-label">Currency</label>
+                    <div class="search-container">
+                        <input type="text" class="form-control" id="currencySearch" placeholder="Search for a currency...">
+                        <div class="search-results" id="currencySearchResults"></div>
+                    </div>
+                    <input type="hidden" id="currencyType" value="">
+                </div>
+            </form>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="nextToStep2">Next</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Student Information -->
+        <div class="step-container step-content" id="step2">
+            <h2 class="mb-4">Student Information</h2>
+            
+            <form id="studentConfig">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="studentName" class="form-label">Student Name</label>
+                        <input type="text" class="form-control" id="studentName" placeholder="Enter student name">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="studentId" class="form-label">Student ID</label>
+                        <input type="text" class="form-control" id="studentId" placeholder="Enter student ID">
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="department" class="form-label">Department</label>
+                        <input type="text" class="form-control" id="department" placeholder="Enter department">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="programme" class="form-label">Programme</label>
+                        <input type="text" class="form-control" id="programme" placeholder="Enter programme">
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="academicYear" class="form-label">Academic Year</label>
+                        <input type="text" class="form-control" id="academicYear" placeholder="Enter academic year">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="semester" class="form-label">Semester</label>
+                        <input type="text" class="form-control" id="semester" placeholder="Enter semester">
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <h5 class="mb-3">Receipt Details</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="receiptNumber" class="form-label">Receipt Number</label>
+                        <input type="text" class="form-control" id="receiptNumber" placeholder="Enter receipt number">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="receiptDate" class="form-label">Date</label>
+                        <input type="text" class="form-control" id="receiptDate" placeholder="Enter receipt date">
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="paymentMethod" class="form-label">Payment Method</label>
+                        <input type="text" class="form-control" id="paymentMethod" placeholder="Enter payment method">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="transactionId" class="form-label">Transaction ID</label>
+                        <input type="text" class="form-control" id="transactionId" placeholder="Enter transaction ID">
+                    </div>
+                </div>
+            </form>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="backToStep1">Back</button>
+                <button class="btn btn-primary" id="nextToStep3">Next</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Fee Structure -->
+        <div class="step-container step-content" id="step3">
+            <h2 class="mb-4">Fee Structure</h2>
+            
+            <form id="feeConfig">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="tuitionFee" class="form-label">Tuition Fee</label>
+                        <input type="number" class="form-control" id="tuitionFee" value="0" min="0">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="gymkhanaFee" class="form-label">Gymkhana Fee</label>
+                        <input type="number" class="form-control" id="gymkhanaFee" value="0" min="0">
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="libraryFee" class="form-label">Library Fee</label>
+                        <input type="number" class="form-control" id="libraryFee" value="0" min="0">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="emergencyFund" class="form-label">Emergency Fund</label>
+                        <input type="number" class="form-control" id="emergencyFund" value="0" min="0">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="statutoryDeposit" class="form-label">Statutory Deposit</label>
+                    <input type="number" class="form-control" id="statutoryDeposit" value="0" min="0">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="scholarship" class="form-label">Scholarship/Discount</label>
+                    <input type="number" class="form-control" id="scholarship" value="0" min="0">
+                </div>
+            </form>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="backToStep2">Back</button>
+                <button class="btn btn-primary" id="nextToStep4">Generate Receipt</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Receipt Preview and Download -->
+        <div class="step-container step-content" id="step4">
+            <h2 class="mb-4">Receipt Preview</h2>
+            <p class="text-muted mb-4">Review your receipt below. If everything looks correct, you can download it as a PDF.</p>
+            
+            <div class="receipt-container" id="receiptPreview">
+                <!-- Header Section -->
+                <div class="top-header">
+                    <div class="logo-block">
+                        <div class="logo-container">
+                            <img id="previewLogo" src="" alt="University Logo" class="logo-preview" style="display: none;">
+                            <div id="noLogoPlaceholder" class="d-flex align-items-center justify-content-center h-100 text-muted">
+                                No Logo
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-block">
+                        <div class="text-secondary small mb-1">Tuition Fee Receipt - <span id="previewUniversityName">[University Name]</span></div>
+                        <p class="institute-name text-uppercase" id="previewInstituteName">[University Name]</p>
+                        <div class="institute-details" id="previewInstituteDetails">
+                            [University Address]<br>
+                            Phone: [Phone Number]<br>
+                            Email: [Email Address]<br>
+                            Website: [Website URL]
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Title -->
+                <h2 class="receipt-title text-uppercase">TUITION FEE RECEIPT</h2>
+
+                <!-- Details Sections -->
+                <div class="row mb-4">
+                    <!-- Receipt Details -->
+                    <div class="col-md-6 details-section">
+                        <h5>Receipt Details</h5>
+                        <div class="detail-row">
+                            <span class="detail-label">Receipt No:</span>
+                            <span class="detail-value" id="previewReceiptNumber">[Receipt Number]</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Date:</span>
+                            <span class="detail-value" id="previewReceiptDate">[Date]</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Payment Method:</span>
+                            <span class="detail-value" id="previewPaymentMethod">[Payment Method]</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Transaction ID:</span>
+                            <span class="detail-value" id="previewTransactionId">[Transaction ID]</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value text-success fw-bold">PAID</span>
+                        </div>
+                    </div>
+
+                    <!-- Bill To -->
+                    <div class="col-md-6 details-section mt-4 mt-md-0">
+                        <h5>Bill To</h5>
+                        <div class="detail-row">
+                            <span class="detail-label">Student Name:</span>
+                            <span class="detail-value" id="previewStudentName">[Student Name]</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Student ID:</span>
+                            <span class="detail-value" id="previewStudentId">[Student ID]</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Department:</span>
+                            <span class="detail-value" id="previewDepartment">[Department]</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Academic Year:</span>
+                            <span class="detail-value" id="previewAcademicYear">[Academic Year]</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Semester:</span>
+                            <span class="detail-value" id="previewSemester">[Semester]</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Programme:</span>
+                            <span class="detail-value" id="previewProgramme">[Programme]</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fee Description Table -->
+                <div class="table-responsive">
+                    <table class="table table-bordered fee-table">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-center" style="width: 50px;">#</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Amount (<span id="previewCurrency">[Currency]</span>)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-center">1</td>
+                                <td>Tuition Fee (<span id="previewSemesterFee">[Semester]</span>)</td>
+                                <td><span class="currency-symbol" id="currencySymbol">[Symbol]</span><span id="previewTuitionFee">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">2</td>
+                                <td>Gymkhana Fee</td>
+                                <td><span class="currency-symbol">[Symbol]</span><span id="previewGymkhanaFee">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">3</td>
+                                <td>Library and Information Centre Fee</td>
+                                <td><span class="currency-symbol">[Symbol]</span><span id="previewLibraryFee">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">4</td>
+                                <td>Student Emergency Fund</td>
+                                <td><span class="currency-symbol">[Symbol]</span><span id="previewEmergencyFund">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">5</td>
+                                <td>Statutory Deposit (Refundable)</td>
+                                <td><span class="currency-symbol">[Symbol]</span><span id="previewStatutoryDeposit">0.00</span></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="summary-row">
+                                <td colspan="2" class="summary-label">Subtotal</td>
+                                <td class="summary-value"><span class="currency-symbol">[Symbol]</span><span id="previewSubtotal">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="summary-label text-muted">Scholarship/Discount (-)</td>
+                                <td class="summary-value text-muted"><span class="currency-symbol">[Symbol]</span><span id="previewScholarship">0.00</span></td>
+                            </tr>
+                            <tr class="grand-total">
+                                <td colspan="2" class="summary-label text-uppercase">Grand Total</td>
+                                <td class="summary-value"><span class="currency-symbol">[Symbol]</span><span id="previewGrandTotal">0.00</span></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Footer Note -->
+                <div class="mt-4 pt-3 border-top text-center text-muted small">
+                    This is a computer-generated receipt and does not require a signature.
+                </div>
+            </div>
+            
+            <!-- Download Section -->
+            <div class="download-section">
+                <h4>Download Your Receipt</h4>
+                <p class="text-muted">Click the button below to download your receipt as a PDF file.</p>
+                <button class="btn btn-success btn-lg" id="downloadPdf">
+                    <i class="bi bi-download"></i> Download PDF
+                </button>
+                <p class="mt-3 small text-muted">You can also print this receipt using your browser's print function.</p>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="backToStep3">Back to Edit</button>
+                <button class="btn btn-primary" id="createNewReceipt">Create New Receipt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize jsPDF
+            const { jsPDF } = window.jspdf;
+            
+            // Sample university data for search
+            const universityDatabase = [
+                {
+                    name: "Indian Institute of Science",
+                    address: "CV Raman Road, Bengaluru, Karnataka 560012, India",
+                    phone: "+91 80 2293 2004",
+                    email: "admissions@iisc.ac.in",
+                    website: "iisc.ac.in",
+                    logo: "https://upload.wikimedia.org/wikipedia/en/3/3b/Indian_Institute_of_Science_2019_logo.svg"
+                },
+                {
+                    name: "Massachusetts Institute of Technology",
+                    address: "77 Massachusetts Ave, Cambridge, MA 02139, USA",
+                    phone: "+1 617-253-1000",
+                    email: "admissions@mit.edu",
+                    website: "mit.edu",
+                    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/MIT_logo.svg/1200px-MIT_logo.svg.png"
+                },
+                {
+                    name: "University of Oxford",
+                    address: "Oxford OX1 2JD, United Kingdom",
+                    phone: "+44 1865 270000",
+                    email: "admissions@ox.ac.uk",
+                    website: "ox.ac.uk",
+                    logo: "https://upload.wikimedia.org/wikipedia/sco/thumb/1/15/University_of_Oxford.svg/1200px-University_of_Oxford.svg.png"
+                },
+                {
+                    name: "Stanford University",
+                    address: "450 Serra Mall, Stanford, CA 94305, USA",
+                    phone: "+1 650-723-2300",
+                    email: "admissions@stanford.edu",
+                    website: "stanford.edu",
+                    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Stanford_University_seal_2003.svg/1200px-Stanford_University_seal_2003.svg.png"
+                },
+                {
+                    name: "Harvard University",
+                    address: "Massachusetts Hall, Cambridge, MA 02138, USA",
+                    phone: "+1 617-495-1000",
+                    email: "admissions@harvard.edu",
+                    website: "harvard.edu",
+                    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Harvard_University_logo.svg/1200px-Harvard_University_logo.svg.png"
+                },
+                {
+                    name: "University of Cambridge",
+                    address: "The Old Schools, Trinity Ln, Cambridge CB2 1TN, UK",
+                    phone: "+44 1223 337733",
+                    email: "admissions@cam.ac.uk",
+                    website: "cam.ac.uk",
+                    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/University_of_Cambridge_coat_of_arms.svg/1200px-University_of_Cambridge_coat_of_arms.svg.png"
+                }
+            ];
+            
+            // Currency data for search
+            const currencyDatabase = [
+                { code: "BDT", name: "Bangladeshi Taka", symbol: "৳" },
+                { code: "INR", name: "Indian Rupee", symbol: "₹" },
+                { code: "USD", name: "US Dollar", symbol: "$" },
+                { code: "EUR", name: "Euro", symbol: "€" },
+                { code: "GBP", name: "British Pound", symbol: "£" },
+                { code: "JPY", name: "Japanese Yen", symbol: "¥" },
+                { code: "CAD", name: "Canadian Dollar", symbol: "C$" },
+                { code: "AUD", name: "Australian Dollar", symbol: "A$" },
+                { code: "CHF", name: "Swiss Franc", symbol: "CHF" },
+                { code: "CNY", name: "Chinese Yuan", symbol: "¥" },
+                { code: "SEK", name: "Swedish Krona", symbol: "kr" },
+                { code: "NZD", name: "New Zealand Dollar", symbol: "NZ$" },
+                { code: "MXN", name: "Mexican Peso", symbol: "$" },
+                { code: "SGD", name: "Singapore Dollar", symbol: "S$" },
+                { code: "HKD", name: "Hong Kong Dollar", symbol: "HK$" },
+                { code: "NOK", name: "Norwegian Krone", symbol: "kr" },
+                { code: "KRW", name: "South Korean Won", symbol: "₩" },
+                { code: "TRY", name: "Turkish Lira", symbol: "₺" },
+                { code: "RUB", name: "Russian Ruble", symbol: "₽" },
+                { code: "BRL", name: "Brazilian Real", symbol: "R$" },
+                { code: "ZAR", name: "South African Rand", symbol: "R" }
+            ];
+            
+            // Format number with commas
+            function formatNumber(num) {
+                return num.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+            }
+            
+            // Calculate totals
+            function calculateTotals() {
+                const tuitionFee = parseFloat(document.getElementById('tuitionFee').value) || 0;
+                const gymkhanaFee = parseFloat(document.getElementById('gymkhanaFee').value) || 0;
+                const libraryFee = parseFloat(document.getElementById('libraryFee').value) || 0;
+                const emergencyFund = parseFloat(document.getElementById('emergencyFund').value) || 0;
+                const statutoryDeposit = parseFloat(document.getElementById('statutoryDeposit').value) || 0;
+                const scholarship = parseFloat(document.getElementById('scholarship').value) || 0;
+                
+                const subtotal = tuitionFee + gymkhanaFee + libraryFee + emergencyFund + statutoryDeposit;
+                const grandTotal = subtotal - scholarship;
+                
+                return {
+                    tuitionFee: formatNumber(tuitionFee),
+                    gymkhanaFee: formatNumber(gymkhanaFee),
+                    libraryFee: formatNumber(libraryFee),
+                    emergencyFund: formatNumber(emergencyFund),
+                    statutoryDeposit: formatNumber(statutoryDeposit),
+                    scholarship: formatNumber(scholarship),
+                    subtotal: formatNumber(subtotal),
+                    grandTotal: formatNumber(grandTotal)
+                };
+            }
+            
+            // Update preview function
+            function updatePreview() {
+                // Get values from form
+                const universityName = document.getElementById('universityName').value || "[University Name]";
+                const universityAddress = document.getElementById('universityAddress').value || "[University Address]";
+                const universityPhone = document.getElementById('universityPhone').value || "[Phone Number]";
+                const universityEmail = document.getElementById('universityEmail').value || "[Email Address]";
+                const universityWebsite = document.getElementById('universityWebsite').value || "[Website URL]";
+                const universityLogo = document.getElementById('universityLogo').value;
+                const currencyType = document.getElementById('currencyType').value || "[Currency]";
+                
+                const receiptNumber = document.getElementById('receiptNumber').value || "[Receipt Number]";
+                const receiptDate = document.getElementById('receiptDate').value || "[Date]";
+                const paymentMethod = document.getElementById('paymentMethod').value || "[Payment Method]";
+                const transactionId = document.getElementById('transactionId').value || "[Transaction ID]";
+                
+                const studentName = document.getElementById('studentName').value || "[Student Name]";
+                const studentId = document.getElementById('studentId').value || "[Student ID]";
+                const department = document.getElementById('department').value || "[Department]";
+                const programme = document.getElementById('programme').value || "[Programme]";
+                const academicYear = document.getElementById('academicYear').value || "[Academic Year]";
+                const semester = document.getElementById('semester').value || "[Semester]";
+                
+                // Calculate fee totals
+                const totals = calculateTotals();
+                
+                // Update preview elements
+                document.getElementById('previewUniversityName').textContent = universityName;
+                document.getElementById('previewInstituteName').textContent = universityName;
+                
+                // Update institute details
+                const instituteDetails = document.getElementById('previewInstituteDetails');
+                instituteDetails.innerHTML = `
+                    ${universityAddress}<br>
+                    Phone: ${universityPhone}<br>
+                    Email: <a href="mailto:${universityEmail}" class="text-decoration-none">${universityEmail}</a><br>
+                    Website: <a href="http://${universityWebsite}" class="text-decoration-none" target="_blank">${universityWebsite}</a>
+                `;
+                
+                // Update logo
+                const logoImg = document.getElementById('previewLogo');
+                const noLogoPlaceholder = document.getElementById('noLogoPlaceholder');
+                
+                if (universityLogo) {
+                    logoImg.src = universityLogo;
+                    logoImg.alt = `${universityName} Logo`;
+                    logoImg.style.display = 'block';
+                    noLogoPlaceholder.style.display = 'none';
+                } else {
+                    logoImg.style.display = 'none';
+                    noLogoPlaceholder.style.display = 'flex';
+                }
+                
+                // Update receipt details
+                document.getElementById('previewReceiptNumber').textContent = receiptNumber;
+                document.getElementById('previewReceiptDate').textContent = receiptDate;
+                document.getElementById('previewPaymentMethod').textContent = paymentMethod;
+                document.getElementById('previewTransactionId').textContent = transactionId;
+                
+                // Update student details
+                document.getElementById('previewStudentName').textContent = studentName;
+                document.getElementById('previewStudentId').textContent = studentId;
+                document.getElementById('previewDepartment').textContent = department;
+                document.getElementById('previewProgramme').textContent = programme;
+                document.getElementById('previewAcademicYear').textContent = academicYear;
+                document.getElementById('previewSemester').textContent = semester;
+                document.getElementById('previewSemesterFee').textContent = semester.split(' ')[0] || "[Semester]";
+                
+                // Update currency
+                document.getElementById('previewCurrency').textContent = currencyType;
+                
+                // Find currency symbol
+                let currencySymbol = "[Symbol]";
+                if (currencyType) {
+                    const currency = currencyDatabase.find(c => c.code === currencyType);
+                    if (currency) {
+                        currencySymbol = currency.symbol;
+                    }
+                }
+                
+                document.querySelectorAll('.currency-symbol').forEach(el => {
+                    el.textContent = currencySymbol;
+                });
+                
+                // Update fee amounts
+                document.getElementById('previewTuitionFee').textContent = totals.tuitionFee;
+                document.getElementById('previewGymkhanaFee').textContent = totals.gymkhanaFee;
+                document.getElementById('previewLibraryFee').textContent = totals.libraryFee;
+                document.getElementById('previewEmergencyFund').textContent = totals.emergencyFund;
+                document.getElementById('previewStatutoryDeposit').textContent = totals.statutoryDeposit;
+                document.getElementById('previewScholarship').textContent = totals.scholarship;
+                document.getElementById('previewSubtotal').textContent = totals.subtotal;
+                document.getElementById('previewGrandTotal').textContent = totals.grandTotal;
+            }
+            
+            // Search universities
+            function searchUniversities(query) {
+                if (!query) return [];
+                
+                return universityDatabase.filter(university => 
+                    university.name.toLowerCase().includes(query.toLowerCase())
+                );
+            }
+            
+            // Search currencies
+            function searchCurrencies(query) {
+                if (!query) return [];
+                
+                return currencyDatabase.filter(currency => 
+                    currency.code.toLowerCase().includes(query.toLowerCase()) ||
+                    currency.name.toLowerCase().includes(query.toLowerCase())
+                );
+            }
+            
+            // Display search results
+            function displaySearchResults(results, container, type) {
+                container.innerHTML = '';
+                
+                if (results.length === 0) {
+                    const noResult = document.createElement('div');
+                    noResult.className = 'search-result-item';
+                    noResult.textContent = 'No results found';
+                    container.appendChild(noResult);
+                } else {
+                    results.forEach(result => {
+                        const item = document.createElement('div');
+                        item.className = 'search-result-item';
+                        
+                        if (type === 'university') {
+                            item.textContent = result.name;
+                            item.addEventListener('click', () => {
+                                document.getElementById('universityName').value = result.name;
+                                document.getElementById('universityAddress').value = result.address;
+                                document.getElementById('universityPhone').value = result.phone;
+                                document.getElementById('universityEmail').value = result.email;
+                                document.getElementById('universityWebsite').value = result.website;
+                                document.getElementById('universityLogo').value = result.logo;
+                                container.style.display = 'none';
+                            });
+                        } else if (type === 'currency') {
+                            item.textContent = `${result.code} - ${result.name} (${result.symbol})`;
+                            item.addEventListener('click', () => {
+                                document.getElementById('currencyType').value = result.code;
+                                document.getElementById('currencySearch').value = `${result.code} - ${result.name}`;
+                                container.style.display = 'none';
+                            });
+                        }
+                        
+                        container.appendChild(item);
+                    });
+                }
+                
+                container.style.display = 'block';
+            }
+            
+            // Navigate to step
+            function goToStep(stepNumber) {
+                // Hide all steps
+                document.querySelectorAll('.step-content').forEach(step => {
+                    step.classList.remove('active');
+                });
+                
+                // Show target step
+                document.getElementById(`step${stepNumber}`).classList.add('active');
+                
+                // Update step indicator
+                document.querySelectorAll('.step').forEach(step => {
+                    step.classList.remove('active');
+                });
+                
+                document.querySelector(`.step[data-step="${stepNumber}"]`).classList.add('active');
+                
+                // If going to step 4, update the preview
+                if (stepNumber === 4) {
+                    updatePreview();
+                }
+            }
+            
+            // Download PDF function
+            function downloadPDF() {
+                const receiptElement = document.getElementById('receiptPreview');
+                
+                html2canvas(receiptElement, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const imgWidth = 210; // A4 width in mm
+                    const pageHeight = 295; // A4 height in mm
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    let heightLeft = imgHeight;
+                    
+                    let position = 0;
+                    
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                    
+                    // Add new page if content is too long
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+                    
+                    // Get university name for filename
+                    const universityName = document.getElementById('universityName').value || 'University';
+                    const studentName = document.getElementById('studentName').value || 'Student';
+                    
+                    pdf.save(`${universityName.replace(/\s+/g, '_')}_Receipt_${studentName.replace(/\s+/g, '_')}.pdf`);
+                });
+            }
+            
+            // Event listeners for navigation
+            document.getElementById('nextToStep2').addEventListener('click', () => goToStep(2));
+            document.getElementById('nextToStep3').addEventListener('click', () => goToStep(3));
+            document.getElementById('nextToStep4').addEventListener('click', () => goToStep(4));
+            
+            document.getElementById('backToStep1').addEventListener('click', () => goToStep(1));
+            document.getElementById('backToStep2').addEventListener('click', () => goToStep(2));
+            document.getElementById('backToStep3').addEventListener('click', () => goToStep(3));
+            
+            // University search
+            document.getElementById('universitySearch').addEventListener('input', function() {
+                const query = this.value;
+                const results = searchUniversities(query);
+                const resultsContainer = document.getElementById('universitySearchResults');
+                displaySearchResults(results, resultsContainer, 'university');
+            });
+            
+            // Currency search
+            document.getElementById('currencySearch').addEventListener('input', function() {
+                const query = this.value;
+                const results = searchCurrencies(query);
+                const resultsContainer = document.getElementById('currencySearchResults');
+                displaySearchResults(results, resultsContainer, 'currency');
+            });
+            
+            // Auto-fill university button
+            document.getElementById('autoFillUniversity').addEventListener('click', function() {
+                const query = document.getElementById('universitySearch').value;
+                if (!query) {
+                    alert('Please enter a university name to search');
+                    return;
+                }
+                
+                const results = searchUniversities(query);
+                if (results.length > 0) {
+                    const university = results[0];
+                    document.getElementById('universityName').value = university.name;
+                    document.getElementById('universityAddress').value = university.address;
+                    document.getElementById('universityPhone').value = university.phone;
+                    document.getElementById('universityEmail').value = university.email;
+                    document.getElementById('universityWebsite').value = university.website;
+                    document.getElementById('universityLogo').value = university.logo;
+                    
+                    // Hide search results
+                    document.getElementById('universitySearchResults').style.display = 'none';
+                } else {
+                    alert('No university found with that name. Please try a different search.');
+                }
+            });
+            
+            // Hide search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-container')) {
+                    document.getElementById('universitySearchResults').style.display = 'none';
+                    document.getElementById('currencySearchResults').style.display = 'none';
+                }
+            });
+            
+            // Download PDF button
+            document.getElementById('downloadPdf').addEventListener('click', downloadPDF);
+            
+            // Create new receipt button
+            document.getElementById('createNewReceipt').addEventListener('click', () => {
+                // Reset all form fields
+                document.getElementById('universityConfig').reset();
+                document.getElementById('studentConfig').reset();
+                document.getElementById('feeConfig').reset();
+                document.getElementById('currencyType').value = '';
+                document.getElementById('currencySearch').value = '';
+                
+                goToStep(1);
+            });
+            
+            // Initialize with empty preview
+            updatePreview();
+        });
+    </script>
+</body>
+</html>
